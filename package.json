@@ -1,0 +1,43 @@
+{
+  "name": "@mwp13/asx",
+  "version": "0.2.1",
+  "description": "Agent-first Asana CLI with schema introspection",
+  "license": "MIT",
+  "author": "mwpryer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwpryer/asx.git"
+  },
+  "bin": {
+    "asx": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun scripts/build.ts",
+    "release": "bun scripts/release.ts",
+    "prepublishOnly": "bun run build",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt --check",
+    "fmt:fix": "oxfmt",
+    "format": "bun run lint:fix && bun run fmt:fix"
+  },
+  "dependencies": {
+    "citty": "^0.2.1",
+    "valibot": "^1.3.1",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0"
+  }
+}
