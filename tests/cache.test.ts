@@ -10,7 +10,7 @@ let tmpDir: string;
 const originalFetch = globalThis.fetch;
 
 beforeEach(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "asx-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "asnx-"));
   process.env.XDG_CACHE_HOME = tmpDir;
 });
 
@@ -22,7 +22,7 @@ afterEach(() => {
 
 describe("loadCachedSchema", () => {
   test("loads compiled schema", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(
       join(cacheDir, "schema.json"),
@@ -45,7 +45,7 @@ describe("loadCachedSchema", () => {
   });
 
   test("wraps invalid cached JSON as a config error", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(join(cacheDir, "schema.json"), "{");
 
@@ -59,12 +59,12 @@ describe("loadCachedSchema", () => {
 
       expect(err.kind).toBe("config");
       expect(err.message).toBe("Cached schema is invalid.");
-      expect(err.help).toBe("Run `asx schema update` to rebuild it.");
+      expect(err.help).toBe("Run `asnx schema update` to rebuild it.");
     }
   });
 
   test("wraps unreadable cached schema as a config error", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(join(cacheDir, "schema.json"), { recursive: true });
 
     try {
@@ -77,12 +77,12 @@ describe("loadCachedSchema", () => {
 
       expect(err.kind).toBe("config");
       expect(err.message).toBe("Cached schema is invalid.");
-      expect(err.help).toBe("Run `asx schema update` to rebuild it.");
+      expect(err.help).toBe("Run `asnx schema update` to rebuild it.");
     }
   });
 
   test("wraps structurally invalid cached schema as a config error", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(
       join(cacheDir, "schema.json"),
@@ -115,12 +115,12 @@ describe("loadCachedSchema", () => {
 
       expect(err.kind).toBe("config");
       expect(err.message).toBe("Cached schema is invalid.");
-      expect(err.help).toBe("Run `asx schema update` to rebuild it.");
+      expect(err.help).toBe("Run `asnx schema update` to rebuild it.");
     }
   });
 
   test("loads cached schema with null enums by filtering them out", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(
       join(cacheDir, "schema.json"),
@@ -165,7 +165,7 @@ describe("loadCachedSchema", () => {
   });
 
   test("oneOfTypes on a body field round-trips through the cache validator", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(
       join(cacheDir, "schema.json"),
@@ -205,7 +205,7 @@ describe("loadCachedSchema", () => {
   });
 
   test("loads cached schema with extra endpoint metadata", () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(cacheDir, { recursive: true });
     writeFileSync(
       join(cacheDir, "schema.json"),
@@ -257,7 +257,7 @@ describe("loadCachedSchema", () => {
 
 describe("updateSchemaCache", () => {
   test("wraps cache write failures as config errors", async () => {
-    const cacheDir = join(tmpDir, "asx");
+    const cacheDir = join(tmpDir, "asnx");
     mkdirSync(tmpDir, { recursive: true });
     writeFileSync(cacheDir, "blocked");
     globalThis.fetch = (async () =>
@@ -279,7 +279,7 @@ describe("updateSchemaCache", () => {
 
       expect(err.kind).toBe("config");
       expect(err.message).toBe("Failed to write cached schema.");
-      expect(err.help).toBe("Run `asx schema update` to rebuild it.");
+      expect(err.help).toBe("Run `asnx schema update` to rebuild it.");
     }
   });
 });

@@ -1,30 +1,30 @@
 ---
-name: asx
-description: Interact with Asana (tasks, projects, users, workspaces, and more) via the asx CLI. Use whenever reading or modifying anything in Asana.
+name: asnx
+description: Interact with Asana (tasks, projects, users, workspaces, and more) via the asnx CLI. Use whenever reading or modifying anything in Asana.
 ---
 
-# `asx`: Asana CLI
+# `asnx`: Asana CLI
 
 ```sh
-asx <entity> <action> [<gid>] [--flags...]
+asnx <entity> <action> [<gid>] [--flags...]
 ```
 
-The CLI is always flat: `asx <entity> <action>`. Sub-resource and verb actions stay explicit, for example `asx tasks subtasks`, `asx tasks create-subtasks`, and `asx tasks add-followers`.
+The CLI is always flat: `asnx <entity> <action>`. Sub-resource and verb actions stay explicit, for example `asnx tasks subtasks`, `asnx tasks create-subtasks`, and `asnx tasks add-followers`.
 
-Use `asx describe [<entity> [<action>]]` for schema introspection.
+Use `asnx describe [<entity> [<action>]]` for schema introspection.
 
 ## Auth
 
 Resolution: `--account <name>` > `ASANA_TOKEN` env var > single stored account.
 
-`asx auth status` verifies the resolved token against the API; use it to diagnose 401s.
+`asnx auth status` verifies the resolved token against the API; use it to diagnose 401s.
 
 ## Input
 
 Writes accept either individual flags or a raw JSON body. `--json` wins on conflict.
 
 ```sh
-asx tasks create --json '{"name":"bugfix","projects":["def"]}'
+asnx tasks create --json '{"name":"bugfix","projects":["def"]}'
 ```
 
 `--json` expects raw request fields only, not a full Asana `{ "data": ... }` envelope.
@@ -55,8 +55,8 @@ Errors go to stderr as `{"error":{"status":...,"message":...,"help":...}}`. `sta
 - Use `--dry-run` to preview writes before sending them.
 - `--opt-fields` on GET requests to keep responses small.
 - Pagination is manual: check `meta.nextPage`, pass as `--offset`.
-- Don't guess GIDs, query first. Start from `asx workspaces list`, then e.g. `asx tasks search <workspace-gid> --text "bugfix"`.
-- If entity commands come back as unknown, the schema cache is missing: run `asx schema update`.
+- Don't guess GIDs, query first. Start from `asnx workspaces list`, then e.g. `asnx tasks search <workspace-gid> --text "bugfix"`.
+- If entity commands come back as unknown, the schema cache is missing: run `asnx schema update`.
 - Dotted Asana filters stay dotted on the CLI, for example `--projects.any` or `--due-on.before`.
 
 ## Gotchas

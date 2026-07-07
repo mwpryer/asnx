@@ -59,7 +59,7 @@ function invalidCachedSchemaError(cause?: unknown): CliError {
   return new CliError({
     kind: "config",
     message: "Cached schema is invalid.",
-    help: "Run `asx schema update` to rebuild it.",
+    help: "Run `asnx schema update` to rebuild it.",
     cause,
   });
 }
@@ -68,7 +68,7 @@ function cacheWriteError(cause: unknown): CliError {
   return new CliError({
     kind: "config",
     message: "Failed to write cached schema.",
-    help: "Run `asx schema update` to rebuild it.",
+    help: "Run `asnx schema update` to rebuild it.",
     cause,
   });
 }
@@ -82,7 +82,7 @@ export function loadCachedSchema(): CompiledSchema {
   if (!existsSync(path)) {
     throw new CliError({
       kind: "config",
-      message: "No cached schema found. Run `asx schema update` first.",
+      message: "No cached schema found. Run `asnx schema update` first.",
     });
   }
   let cached: string;

@@ -46,8 +46,8 @@ class FakeStderr extends Writable {
 }
 
 beforeEach(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "asx-"));
-  accountsDir = join(tmpDir, "asx");
+  tmpDir = mkdtempSync(join(tmpdir(), "asnx-"));
+  accountsDir = join(tmpDir, "asnx");
   accountsPath = join(accountsDir, "accounts.json");
   process.env.XDG_CONFIG_HOME = tmpDir;
   delete process.env.ASANA_TOKEN;

@@ -52,7 +52,7 @@ function invalidAccountsError(cause?: unknown): CliError {
   return new CliError({
     kind: "config",
     message: "Stored accounts file is invalid.",
-    help: "Remove or fix accounts.json, then run `asx auth add <name>` again.",
+    help: "Remove or fix accounts.json, then run `asnx auth add <name>` again.",
     cause,
   });
 }
@@ -61,7 +61,7 @@ function accountsWriteError(cause: unknown): CliError {
   return new CliError({
     kind: "config",
     message: "Failed to write accounts file.",
-    help: "Check permissions for the asx config directory, then run `asx auth add <name>` again.",
+    help: "Check permissions for the asnx config directory, then run `asnx auth add <name>` again.",
     cause,
   });
 }
@@ -127,7 +127,7 @@ export function resolveAccountToken(accountName?: string): string {
   if (accounts.length === 0) {
     throw new CliError({
       kind: "auth",
-      message: "No accounts stored. Run `asx auth add <name>`.",
+      message: "No accounts stored. Run `asnx auth add <name>`.",
     });
   }
   if (accounts.length > 1) {

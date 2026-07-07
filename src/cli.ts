@@ -19,7 +19,7 @@ const DESCRIPTION =
 
 const main = defineCommand({
   meta: {
-    name: "asx",
+    name: "asnx",
     version: VERSION,
     description: DESCRIPTION,
   },
@@ -43,7 +43,7 @@ const main = defineCommand({
           new CliError({
             kind: "config",
             message: `Unknown command "${topLevel}".`,
-            help: "No cached schema found. Run `asx schema update` first.",
+            help: "No cached schema found. Run `asnx schema update` first.",
           }),
         );
       }

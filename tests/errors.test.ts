@@ -64,7 +64,7 @@ describe("exitWithError", () => {
         new CliError({
           kind: "config",
           message: "Cached schema is invalid.",
-          help: "Run `asx schema update` to rebuild it.",
+          help: "Run `asnx schema update` to rebuild it.",
         }),
         {
           stderr: {
@@ -87,7 +87,7 @@ describe("exitWithError", () => {
   "error": {
     "status": null,
     "message": "Cached schema is invalid.",
-    "help": "Run \`asx schema update\` to rebuild it."
+    "help": "Run \`asnx schema update\` to rebuild it."
   }
 }
 `);

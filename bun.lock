@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "asx",
+      "name": "asnx-cli",
       "dependencies": {
         "citty": "^0.2.2",
         "valibot": "^1.4.2",

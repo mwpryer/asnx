@@ -4,7 +4,7 @@ import { buildQueryString, sleep } from "@/utils";
 const BASE_URL = "https://app.asana.com/api/1.0";
 const MAX_RETRIES = 3;
 const HELP_BY_STATUS: Partial<Record<number, string>> = {
-  401: "Check your token with `asx auth status`.",
+  401: "Check your token with `asnx auth status`.",
   403: "You do not have permission for this resource.",
   404: "Resource not found. Check the GID.",
 };

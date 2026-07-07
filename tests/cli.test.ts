@@ -9,7 +9,7 @@ const projectRoot = resolve(import.meta.dir, "..");
 let tmpDir: string;
 
 function writeCompiledSchema(schema: CompiledSchema): void {
-  const cacheDir = join(tmpDir, "cache", "asx");
+  const cacheDir = join(tmpDir, "cache", "asnx");
   mkdirSync(cacheDir, { recursive: true });
   writeFileSync(join(cacheDir, "schema.json"), JSON.stringify(schema));
 }
@@ -42,8 +42,53 @@ async function runCli(args: string[], input?: string) {
   return { stdout, stderr, exitCode };
 }
 
+// Citty renders help with ANSI colour codes; strip them so substring assertions work
+function stripAnsi(text: string): string {
+  // oxlint-disable-next-line no-control-regex
+  return text.replace(/\x1b\[\d+m/g, "");
+}
+
+// Minimal two-entity schema for help and describe tests
+function writeIntrospectionSchema(): void {
+  writeCompiledSchema({
+    version: "1.0",
+    generated: "2026-01-01T00:00:00.000Z",
+    source: "test",
+    stats: { endpointCount: 3, bodyEndpointCount: 1, fieldCount: 3 },
+    endpoints: [
+      {
+        method: "GET",
+        path: "/tasks/{task_gid}",
+        entity: "tasks",
+        summary: "Get a task",
+        pathParams: [{ name: "task_gid", type: "string", required: true }],
+        queryFields: [{ name: "opt_fields", type: "array" }],
+        bodyFields: [],
+      },
+      {
+        method: "POST",
+        path: "/tasks",
+        entity: "tasks",
+        summary: "Create a task",
+        pathParams: [],
+        queryFields: [],
+        bodyFields: [{ name: "name", type: "string", required: true }],
+      },
+      {
+        method: "GET",
+        path: "/projects/{project_gid}",
+        entity: "projects",
+        summary: "Get a project",
+        pathParams: [{ name: "project_gid", type: "string", required: true }],
+        queryFields: [],
+        bodyFields: [],
+      },
+    ],
+  });
+}
+
 beforeEach(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "asx-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "asnx-"));
 });
 
 afterEach(() => {
@@ -186,7 +231,7 @@ describe("cli", () => {
 
     expect(result.exitCode).toBe(1);
     expect(payload.error.message).toBe('Unknown command "tasks".');
-    expect(payload.error.help).toContain("asx schema update");
+    expect(payload.error.help).toContain("asnx schema update");
   });
 
   test("auth add rejects an empty token", async () => {
@@ -210,5 +255,147 @@ describe("cli", () => {
     expect(payload.meta).toEqual({ command: "auth.add" });
     expect(payload.data).toEqual({ account: "work", added: true });
     expect(result.stderr).toBe("");
+  });
+});
+
+describe("help output", () => {
+  test("root --help lists bootstrap commands and schema entities", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["--help"]);
+    const stdout = stripAnsi(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(stdout).toContain("USAGE");
+    expect(stdout).toContain("auth");
+    expect(stdout).toContain("describe");
+    expect(stdout).toContain("schema");
+    expect(stdout).toContain("tasks");
+    expect(stdout).toContain("projects");
+    expect(stdout).toContain("asnx <command> --help");
+  });
+
+  test("entity --help lists actions with summaries", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["tasks", "--help"]);
+    const stdout = stripAnsi(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(stdout).toContain("get");
+    expect(stdout).toContain("Get a task");
+    expect(stdout).toContain("create");
+    expect(stdout).toContain("Create a task");
+  });
+
+  test("action --help shows positional args and flags", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["tasks", "get", "--help"]);
+    const stdout = stripAnsi(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(stdout).toContain("TASK-GID");
+    expect(stdout).toContain("--opt-fields");
+    expect(stdout).toContain("--dry-run");
+    expect(stdout).toContain("--json");
+    expect(stdout).toContain("--account");
+  });
+
+  test("unknown entity with cached schema prints usage and an error", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["bogus"]);
+
+    expect(result.exitCode).toBe(1);
+    expect(stripAnsi(result.stdout)).toContain("USAGE");
+    expect(stripAnsi(result.stderr)).toContain("Unknown command bogus");
+  });
+});
+
+describe("describe command", () => {
+  test("no args returns the sorted entity list", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["describe"]);
+    const payload = JSON.parse(result.stdout) as {
+      meta: Record<string, unknown>;
+      data: { entities: string[] };
+    };
+
+    expect(result.exitCode).toBe(0);
+    expect(payload.meta).toEqual({ command: "describe.entities" });
+    expect(payload.data.entities).toEqual(["projects", "tasks"]);
+  });
+
+  test("entity arg returns its actions with method and summary", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["describe", "tasks"]);
+    const payload = JSON.parse(result.stdout) as {
+      meta: Record<string, unknown>;
+      data: {
+        entity: string;
+        actions: { action: string; method: string; summary: string }[];
+      };
+    };
+
+    expect(result.exitCode).toBe(0);
+    expect(payload.meta).toEqual({ command: "describe.entity" });
+    expect(payload.data.entity).toBe("tasks");
+    expect(payload.data.actions).toEqual([
+      { action: "get", method: "GET", summary: "Get a task" },
+      { action: "create", method: "POST", summary: "Create a task" },
+    ]);
+  });
+
+  test("unknown entity is a usage error", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["describe", "bogus"]);
+    const payload = JSON.parse(result.stderr) as {
+      error: { message: string };
+    };
+
+    expect(result.exitCode).toBe(1);
+    expect(payload.error.message).toBe("Unknown entity: bogus");
+  });
+
+  test("unknown action is a usage error", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["describe", "tasks", "bogus"]);
+    const payload = JSON.parse(result.stderr) as {
+      error: { message: string };
+    };
+
+    expect(result.exitCode).toBe(1);
+    expect(payload.error.message).toBe("Unknown action: tasks bogus");
+  });
+});
+
+describe("schema command", () => {
+  test("version reports the cached schema info", async () => {
+    writeIntrospectionSchema();
+
+    const result = await runCli(["schema", "version"]);
+    const payload = JSON.parse(result.stdout) as {
+      meta: Record<string, unknown>;
+      data: {
+        version: string;
+        generated: string;
+        source: string;
+        stats: Record<string, number>;
+      };
+    };
+
+    expect(result.exitCode).toBe(0);
+    expect(payload.meta).toEqual({ command: "schema.version" });
+    expect(payload.data).toEqual({
+      version: "1.0",
+      generated: "2026-01-01T00:00:00.000Z",
+      source: "test",
+      stats: { endpointCount: 3, bodyEndpointCount: 1, fieldCount: 3 },
+    });
   });
 });
