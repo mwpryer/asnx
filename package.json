@@ -38,5 +38,8 @@
     "@types/bun": "latest",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
