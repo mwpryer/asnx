@@ -20,7 +20,6 @@
   },
   "scripts": {
     "build": "bun scripts/build.ts",
-    "release": "bun scripts/release.ts",
     "prepublishOnly": "bun run build",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
