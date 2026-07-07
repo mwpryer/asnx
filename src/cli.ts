@@ -5,7 +5,7 @@ import { buildEntityCommands } from "@/commands/api";
 import { authCommand } from "@/commands/auth";
 import { describeCommand } from "@/commands/describe";
 import { schemaCommand } from "@/commands/schema";
-import { exitWithError } from "@/errors";
+import { CliError, exitWithError } from "@/errors";
 import { buildRoutes } from "@/router";
 
 declare const __ASX_VERSION__: string;
@@ -29,10 +29,24 @@ const main = defineCommand({
       describe: describeCommand,
       schema: schemaCommand,
     };
+    // Mirror citty's subcommand resolution: first arg not starting with "-"
     const topLevel = process.argv.slice(2).find((arg) => !arg.startsWith("-"));
 
-    // Keep bootstrap commands usable before schema cache exists
-    if (!hasCachedSchema() || topLevel === "auth" || topLevel === "schema") {
+    // Bootstrap commands stay usable before schema cache exists
+    if (topLevel && topLevel in commands) {
+      return commands;
+    }
+    if (!hasCachedSchema()) {
+      // Explain the missing cache instead of citty's bare unknown-command error
+      if (topLevel) {
+        exitWithError(
+          new CliError({
+            kind: "config",
+            message: `Unknown command "${topLevel}".`,
+            help: "No cached schema found. Run `asx schema update` first.",
+          }),
+        );
+      }
       return commands;
     }
 

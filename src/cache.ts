@@ -3,8 +3,8 @@ import { join } from "node:path";
 import * as v from "valibot";
 
 import { compileSchema, type CompiledSchema } from "@/compiler";
-import { CliError, toCliError } from "@/errors";
-import { HTTP_TIMEOUT_MS, xdgDir } from "@/utils";
+import { CliError, HTTP_TIMEOUT_MS, toCliError } from "@/errors";
+import { xdgDir } from "@/utils";
 
 const SPEC_URL =
   "https://raw.githubusercontent.com/Asana/openapi/master/defs/asana_oas.yaml";

@@ -37,6 +37,13 @@ interface VerifyTokenDependencies {
   executeRequest?: typeof executeAsanaRequest;
 }
 
+interface VerifyTokenResult {
+  ok: boolean;
+  name?: string;
+  email?: string;
+  error?: string;
+}
+
 function getAccountStorePath(): string {
   return join(xdgDir("config"), "accounts.json");
 }
@@ -134,6 +141,13 @@ export function resolveAccountToken(accountName?: string): string {
 }
 
 export function addAccount(name: string, token: string): void {
+  if (!token) {
+    throw new CliError({
+      kind: "usage",
+      message: "Token is empty.",
+      help: "Provide a non-empty Asana personal access token.",
+    });
+  }
   const accounts = loadAccounts();
   if (accounts.some((acc) => acc.name === name)) {
     throw new CliError({
@@ -162,16 +176,20 @@ export function removeAccount(name: string): void {
   saveAccounts(accounts);
 }
 
-export function readTokenFromStdin(
+export async function readTokenFromStdin(
   deps: ReadTokenDependencies = {},
 ): Promise<string> {
   const stdin = deps.stdin ?? process.stdin;
   const stderr = deps.stderr ?? process.stderr;
   const onInterrupt = deps.onInterrupt ?? (() => process.exit(1));
   // Prompt on TTY, stay pipe-friendly in automation
-  return stdin.isTTY
-    ? readTokenFromTty(stdin, stderr, onInterrupt)
-    : readTokenFromPipe(stdin);
+  let token: string;
+  if (stdin.isTTY) {
+    token = await readTokenFromTty(stdin, stderr, onInterrupt);
+  } else {
+    token = await readTokenFromPipe(stdin);
+  }
+  return token.trim();
 }
 
 async function readTokenFromPipe(stdin: TokenInput): Promise<string> {
@@ -182,7 +200,7 @@ async function readTokenFromPipe(stdin: TokenInput): Promise<string> {
     chunks.push(chunk as string);
   }
 
-  return chunks.join("").replace(/[\r\n]+$/, "");
+  return chunks.join("");
 }
 
 async function readTokenFromTty(
@@ -248,7 +266,7 @@ async function readTokenFromTty(
 export async function verifyToken(
   token: string,
   deps: VerifyTokenDependencies = {},
-): Promise<{ ok: boolean; name?: string; email?: string; error?: string }> {
+): Promise<VerifyTokenResult> {
   const executeRequest = deps.executeRequest ?? executeAsanaRequest;
   try {
     const response = await executeRequest(

@@ -271,6 +271,20 @@ describe("retries", () => {
     expect(harness.sleeps).toEqual([5000]);
   });
 
+  test("missing Retry-After falls back to five seconds", async () => {
+    let attempts = 0;
+    const harness = createRequestHarness(() => {
+      attempts++;
+      if (attempts === 1) {
+        return new Response(JSON.stringify({}), { status: 429 });
+      }
+      return Response.json({ data: { gid: "abc" } });
+    });
+
+    await harness.run({ method: "GET", path: "/tasks/abc" });
+    expect(harness.sleeps).toEqual([5000]);
+  });
+
   test("invalid non-json error body still classifies by status", async () => {
     const harness = createRequestHarness(
       () => new Response("<html>boom</html>", { status: 500 }),

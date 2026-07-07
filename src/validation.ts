@@ -586,6 +586,15 @@ export function validateInput(
   validateRequiredQuery(endpoint.queryFields, query);
   validateRequiredBody(endpoint.bodyFields, mergedBody);
 
+  // Asana answers empty write bodies with an unhelpful generic parse error
+  if (endpoint.bodyFields.length > 0 && Object.keys(mergedBody).length === 0) {
+    throw new CliError({
+      kind: "usage",
+      message:
+        "No fields to send. Provide at least one field flag or a --json body.",
+    });
+  }
+
   return {
     path,
     query: Object.keys(query).length > 0 ? query : undefined,

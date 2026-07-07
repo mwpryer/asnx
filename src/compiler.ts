@@ -1,8 +1,9 @@
 import { parse as parseYaml } from "yaml";
 
+import { GLOBAL_FLAG_DEFS } from "@/args";
 import type { HttpMethod } from "@/client";
 import { CliError } from "@/errors";
-import { isPlainObject, normalizeEntity, truncate } from "@/utils";
+import { isPlainObject, normalizeEntity, toKebab, truncate } from "@/utils";
 
 export interface EndpointFieldItems {
   type: string;
@@ -180,13 +181,19 @@ function resolveRef<T>(
   obj: OpenApiRefable<T>,
 ): T | undefined {
   let current = obj;
+  const seenRefs = new Set<string>();
   while (
     typeof current === "object" &&
     current !== null &&
     "$ref" in current &&
     typeof current.$ref === "string"
   ) {
-    current = lookupRef(spec, current.$ref) as OpenApiRefable<T>;
+    const ref = current.$ref;
+    if (seenRefs.has(ref)) {
+      throw invalidSpecError(`Circular $ref in OpenAPI spec: ${ref}`);
+    }
+    seenRefs.add(ref);
+    current = lookupRef(spec, ref) as OpenApiRefable<T>;
   }
   return current as T | undefined;
 }
@@ -579,6 +586,18 @@ export function compileSchema(
       );
       const hasBody = method !== "get" && method !== "delete";
       const bodyFields = hasBody ? extractBody(spec, op.requestBody) : [];
+
+      // Path, query, and body share one CLI flag namespace with the global flags
+      const seenFlagNames = new Set([...Object.keys(GLOBAL_FLAG_DEFS), "help"]);
+      for (const field of [...pathFields, ...queryFields, ...bodyFields]) {
+        const cliName = toKebab(field.name);
+        if (seenFlagNames.has(cliName)) {
+          throw invalidSpecError(
+            `Duplicate CLI flag name "--${cliName}" for ${method.toUpperCase()} ${path}.`,
+          );
+        }
+        seenFlagNames.add(cliName);
+      }
 
       const endpoint: EndpointSpec = {
         method: METHOD_NAMES[method],

@@ -833,4 +833,77 @@ describe("invalid OpenAPI input", () => {
       expect(err.message).toBe("OpenAPI spec is missing info.version.");
     }
   });
+
+  test("circular $ref chain is wrapped as a config error", () => {
+    const spec = `
+openapi: "3.0.0"
+info: { title: test, version: "1.0" }
+components:
+  schemas:
+    A: { $ref: "#/components/schemas/B" }
+    B: { $ref: "#/components/schemas/A" }
+paths:
+  /tags:
+    post:
+      tags: [Tags]
+      summary: Create a tag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data: { $ref: "#/components/schemas/A" }
+`;
+    try {
+      compileSchema(spec, "test");
+      expect.unreachable("should throw");
+    } catch (err) {
+      if (!(err instanceof CliError)) {
+        throw err;
+      }
+
+      expect(err.kind).toBe("config");
+      expect(err.message).toContain("Circular $ref");
+    }
+  });
+
+  test("duplicate CLI flag name across query and body is a config error", () => {
+    const spec = `
+openapi: "3.0.0"
+info: { title: test, version: "1.0" }
+paths:
+  /tags:
+    post:
+      tags: [Tags]
+      summary: Create a tag
+      parameters:
+        - name: name
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    name: { type: string }
+`;
+    try {
+      compileSchema(spec, "test");
+      expect.unreachable("should throw");
+    } catch (err) {
+      if (!(err instanceof CliError)) {
+        throw err;
+      }
+
+      expect(err.kind).toBe("config");
+      expect(err.message).toBe(
+        'Duplicate CLI flag name "--name" for POST /tags.',
+      );
+    }
+  });
 });

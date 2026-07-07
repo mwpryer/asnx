@@ -70,6 +70,11 @@ describe("addAccount", () => {
     expect(() => addAccount("work", "1/200:test")).toThrow("already exists");
   });
 
+  test("rejects an empty token", () => {
+    expect(() => addAccount("work", "")).toThrow("Token is empty");
+    expect(listAccounts()).toEqual([]);
+  });
+
   test("wraps account store write failures as config errors", () => {
     mkdirSync(accountsDir, { recursive: true });
     writeFileSync(accountsPath, JSON.stringify([{ name: "work", token: "x" }]));
@@ -202,6 +207,15 @@ describe("readTokenFromStdin", () => {
 
     const promise = readTokenFromStdin({ stdin });
     stdin.end("1/100:test\n");
+
+    await expect(promise).resolves.toBe("1/100:test");
+  });
+
+  test("trims surrounding whitespace from piped input", async () => {
+    const stdin = new FakeStdin();
+
+    const promise = readTokenFromStdin({ stdin });
+    stdin.end("  1/100:test \r\n");
 
     await expect(promise).resolves.toBe("1/100:test");
   });

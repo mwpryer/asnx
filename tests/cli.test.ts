@@ -178,6 +178,27 @@ describe("cli", () => {
     expect(payload.data).not.toHaveProperty("args");
   });
 
+  test("unknown command without cached schema suggests schema update", async () => {
+    const result = await runCli(["tasks", "get", "123"]);
+    const payload = JSON.parse(result.stderr) as {
+      error: { message: string; help: string };
+    };
+
+    expect(result.exitCode).toBe(1);
+    expect(payload.error.message).toBe('Unknown command "tasks".');
+    expect(payload.error.help).toContain("asx schema update");
+  });
+
+  test("auth add rejects an empty token", async () => {
+    const result = await runCli(["auth", "add", "work"], "\n");
+    const payload = JSON.parse(result.stderr) as {
+      error: { message: string };
+    };
+
+    expect(result.exitCode).toBe(1);
+    expect(payload.error.message).toBe("Token is empty.");
+  });
+
   test("auth add emits a json acknowledgement", async () => {
     const result = await runCli(["auth", "add", "work"], "1/100:test\n");
     const payload = JSON.parse(result.stdout) as {

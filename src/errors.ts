@@ -1,7 +1,8 @@
 import type { ArgsDef, CommandContext } from "citty";
 
 import { printError, type JsonStream } from "@/output";
-import { HTTP_TIMEOUT_MS } from "@/utils";
+
+export const HTTP_TIMEOUT_MS = 30_000;
 
 type CliErrorKind =
   | "usage"

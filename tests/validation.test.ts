@@ -286,9 +286,16 @@ describe("buildHttpRequest", () => {
     ).toThrow('"bogus" is not valid');
   });
 
-  test("optional-only body endpoints allow empty input locally", () => {
-    const request = createRequest(createStory, ["abc"], {});
-    expect(request.body).toBeUndefined();
+  test("optional-only body endpoints reject empty input locally", () => {
+    expect(() => createRequest(createStory, ["abc"], {})).toThrow(
+      "No fields to send",
+    );
+  });
+
+  test("empty --json body is rejected locally", () => {
+    expect(() => createRequest(createStory, ["abc"], { json: "{}" })).toThrow(
+      "No fields to send",
+    );
   });
 
   test("date fields reject impossible calendar dates", () => {

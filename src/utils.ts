@@ -1,12 +1,13 @@
 import { join } from "node:path";
 
+import { CliError } from "@/errors";
+
 const CAMEL_BOUNDARY_RE = /([a-z0-9])([A-Z])/g;
 const UNDERSCORE_RE = /_/g;
 const WHITESPACE_RE = /\s+/g;
 const HTML_TAG_RE = /<[^>]+>/g;
 const MAX_DESCRIPTION_LENGTH = 120;
 const ELLIPSIS = "...";
-export const HTTP_TIMEOUT_MS = 30_000;
 
 export function isPlainObject(
   value: unknown,
@@ -24,7 +25,18 @@ export function xdgDir(type: "config" | "cache"): string {
     envKey = "XDG_CACHE_HOME";
     fallback = ".cache";
   }
-  const base = process.env[envKey] ?? join(process.env.HOME!, fallback);
+  let base = process.env[envKey];
+  if (!base) {
+    const home = process.env.HOME;
+    if (!home) {
+      throw new CliError({
+        kind: "config",
+        message: `Cannot locate ${type} directory.`,
+        help: `Set ${envKey} or HOME.`,
+      });
+    }
+    base = join(home, fallback);
+  }
   return join(base, "asx");
 }
 

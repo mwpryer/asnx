@@ -1,5 +1,5 @@
-import { CliError, toCliError } from "@/errors";
-import { buildQueryString, HTTP_TIMEOUT_MS, sleep } from "@/utils";
+import { CliError, HTTP_TIMEOUT_MS, toCliError } from "@/errors";
+import { buildQueryString, sleep } from "@/utils";
 
 const BASE_URL = "https://app.asana.com/api/1.0";
 const MAX_RETRIES = 3;
@@ -67,11 +67,13 @@ function apiError(status: number, body: ApiErrorBody): CliError {
 }
 
 function parseRetryAfter(headerValue: string | null): number {
+  if (!headerValue) {
+    return 5000;
+  }
   const seconds = Number(headerValue);
   if (Number.isFinite(seconds) && seconds >= 0) {
     return seconds * 1000;
   }
-  // Fallback for missing or bad Retry-After
   return 5000;
 }
 
