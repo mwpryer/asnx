@@ -19,15 +19,15 @@
 > [!IMPORTANT]
 > This project is under active development. Expect breaking changes before v1.0.
 
-## Why asx
+## Why `asx`
 
-asx is generated from the Asana OpenAPI spec, not hand-written. Commands come straight from the schema, so when Asana ships a new endpoint you can pull it in yourself with `asx schema update` instead of waiting on a release. The same schema makes the whole surface introspectable, with every command, flag, and response shape described in JSON.
+`asx` is generated from the Asana OpenAPI spec, not hand-written. Commands come straight from the schema, so when Asana ships a new endpoint you can pull it in yourself with `asx schema update` instead of waiting on a release. The same schema makes the whole surface introspectable, with every command, flag, and response shape described in JSON.
 
-asx was built for agents from the start. `--json` takes the raw API payload one-to-one. `--opt-fields` keeps responses from swamping an agent's context. `--dry-run` shows the exact request before it is sent, and flags are checked against the OpenAPI types, so bad calls fail locally instead of at the API.
+`asx` was built for agents from the start. `--json` takes the raw API payload one-to-one. `--opt-fields` keeps responses from swamping an agent's context. `--dry-run` shows the exact request before it is sent, and flags are checked against the OpenAPI types, so bad calls fail locally instead of at the API.
 
 ## Installation
 
-Requires **Node.js 24+** and an [Asana Personal Access Token](https://developers.asana.com/docs/personal-access-token).
+Requires **Node.js 24+** and an [Asana Personal Access Token](https://developers.asana.com/docs/personal-access-token). To create one, go to [My apps](https://app.asana.com/0/my-apps) in Asana and choose **Create new token** under Personal access tokens.
 
 ```bash
 npm install -g @mwp13/asx
@@ -53,7 +53,7 @@ Stored accounts live in `~/.config/asx/accounts.json` (respects `XDG_CONFIG_HOME
 
 ## Agent skill
 
-asx ships with an [agent skill](https://skills.sh) that gives coding agents the small bit of context they need to drive asx and introspect commands themselves.
+`asx` ships with an [agent skill](skills/asx/SKILL.md) that gives coding agents the small bit of context they need to drive `asx` and introspect commands themselves.
 
 ```bash
 npx skills add mwpryer/asx
@@ -95,14 +95,14 @@ What makes it usable for agents:
 
 ## Key flags
 
-| Flag               | Description                                      |
-| ------------------ | ------------------------------------------------ |
-| `--account <name>` | Account to use for this request                  |
-| `--opt-fields a,b` | Comma-separated fields to return                 |
-| `--dry-run`        | Return the built HTTP request without sending it |
-| `--json '{...}'`   | Raw JSON body (replaces individual value flags)  |
-| `--limit N`        | Page size for list commands                      |
-| `--offset <token>` | Pagination cursor from a previous response       |
+| Flag               | Description                                                    |
+| ------------------ | -------------------------------------------------------------- |
+| `--account <name>` | Account to use for this request                                |
+| `--opt-fields a,b` | Comma-separated fields to return                               |
+| `--dry-run`        | Return the built HTTP request without sending it               |
+| `--json '{...}'`   | Raw JSON body, merged over value flags (`--json` wins per key) |
+| `--limit N`        | Page size for list commands                                    |
+| `--offset <token>` | Pagination cursor from a previous response                     |
 
 ## Output
 
@@ -136,6 +136,8 @@ Errors go to stderr:
   }
 }
 ```
+
+`status` is `null` for local errors (usage, transport). The exit code is 1 on any error.
 
 ## Licence
 
