@@ -20,14 +20,15 @@
   },
   "scripts": {
     "build": "bun scripts/build.ts",
-    "prepublishOnly": "bun run build",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt --check",
     "fmt:fix": "oxfmt",
-    "format": "bun run lint:fix && bun run fmt:fix"
+    "format": "bun run lint:fix && bun run fmt:fix",
+    "preversion": "bun run typecheck && bun run lint && bun run fmt && bun run test",
+    "postversion": "git push --follow-tags"
   },
   "dependencies": {
     "citty": "^0.2.2",
